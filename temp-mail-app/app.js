@@ -139,23 +139,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2500);
     }
 
-    // Helper: Universal OTP Code Extractor for All Services (TikTok, Tinder, FB, Google, Telegram, etc.)
+    // Helper: RFC 2047 Header Decoder (Converts =?UTF-8?B?...?= into clear Vietnamese text)
+    function decodeRFC2047(header) {
+        if (!header) return '(No Subject)';
+        return header.replace(/=\?UTF-8\?B\?([^?]+)\?=/gi, (match, b64) => {
+            try {
+                return decodeURIComponent(escape(atob(b64)));
+            } catch (e) {
+                try { return atob(b64); } catch (err) { return match; }
+            }
+        }).replace(/=\?UTF-8\?Q\?([^?]+)\?=/gi, (match, qp) => {
+            try {
+                return qp.replace(/=([0-9A-F]{2})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16))).replace(/_/g, ' ');
+            } catch (e) { return match; }
+        });
+    }
+
+    // Helper: Strict Pure Numeric OTP Extractor (Prevents "41506Kh" or "ults" garbage strings)
     function extractOtpCode(text, html, subject) {
-        const combined = `${subject || ''} ${text || ''} ${html ? html.replace(/<[^>]+>/g, ' ') : ''}`;
+        const cleanSub = decodeRFC2047(subject || '');
+        const combined = `${cleanSub} ${text || ''}`;
         
-        // Priority 1: Keyword + Code (4-8 digits/chars)
-        const keywordMatch = combined.match(/(?:code|mã|otp|pin|passcode|verification|verify|secret|security|confirm|confirmation|auth|authentication)[^\d]*([A-Za-z0-9]{4,8})/i);
-        if (keywordMatch && keywordMatch[1] && !/^(http|https|html|css|body|head|div|span|table|width|style)$/i.test(keywordMatch[1])) {
-            return keywordMatch[1];
+        // Priority 1: Keyword + Pure Digits (4 to 8 digits)
+        const keywordDigitMatch = combined.match(/(?:code|mã|otp|pin|passcode|verification|verify|secret|security|confirm|confirmation|auth)[^\d]*\b(\d{4,8})\b/i);
+        if (keywordDigitMatch && keywordDigitMatch[1]) {
+            return keywordDigitMatch[1];
         }
 
-        // Priority 2: Hyphenated code (e.g. G-123456 or 123-456)
-        const hyphenMatch = combined.match(/\b([A-Z0-9]{1,3}-\d{4,6})\b/i);
-        if (hyphenMatch) return hyphenMatch[1];
+        // Priority 2: Pure 4-8 digits in Subject line (Facebook/Google/TikTok/Tinder subjects put OTP first!)
+        const subjectDigitMatch = cleanSub.match(/\b(\d{4,8})\b/);
+        if (subjectDigitMatch) {
+            return subjectDigitMatch[1];
+        }
 
-        // Priority 3: Standalone 4 to 8 digit numbers
-        const codeMatch = combined.match(/\b(\d{4,8})\b/);
-        return codeMatch ? codeMatch[1] : null;
+        // Priority 3: Standalone 4 to 8 digits in body
+        const bodyDigitMatch = combined.match(/\b(\d{4,8})\b/);
+        return bodyDigitMatch ? bodyDigitMatch[1] : null;
     }
 
     // Helper: Random string generator
@@ -269,12 +288,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const otp = extractOtpCode(mail.text, mail.html, mail.subject);
+        const cleanSub = decodeRFC2047(mail.subject || '');
+        const cleanName = decodeRFC2047(mail.fromName || mail.from?.split('<')[0] || 'Unknown');
+        const otp = extractOtpCode(mail.text, mail.html, cleanSub);
         const newMail = {
             id: mail.id || 'mail_' + Date.now(),
-            fromName: mail.fromName || mail.from?.split('<')[0] || 'Unknown',
+            fromName: cleanName,
             fromEmail: mail.fromEmail || mail.from || 'unknown@domain.com',
-            subject: mail.subject || '(No Subject)',
+            subject: cleanSub,
             snippet: mail.snippet || mail.text?.substring(0, 100) || 'No preview available',
             html: mail.html || `<p>${mail.text || 'Empty content'}</p>`,
             date: mail.date || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
