@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hatoky - FREE Temporary Email</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Top Header Navigation Bar -->
+    <header class="top-nav">
+        <div class="nav-brand">
+            <div class="brand-logo-custom">
+                <svg width="32" height="32" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="goldStem" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#fdf4b8" />
+                            <stop offset="35%" stop-color="#dca943" />
+                            <stop offset="70%" stop-color="#aa761f" />
+                            <stop offset="100%" stop-color="#69460a" />
+                        </linearGradient>
+                        <linearGradient id="goldHead" x1="0%" y1="0%" x2="100%" y2="50%">
+                            <stop offset="0%" stop-color="#ffffff" />
+                            <stop offset="25%" stop-color="#ffe899" />
+                            <stop offset="65%" stop-color="#d49e38" />
+                            <stop offset="100%" stop-color="#8c5b10" />
+                        </linearGradient>
+                        <filter id="hatokyGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#dca943" flood-opacity="0.35" />
+                        </filter>
+                    </defs>
+                    <g filter="url(#hatokyGlow)">
+                        <!-- Left Stem with Circular Beak Recess Cutout Notch -->
+                        <path d="M 55,45 L 20,10 L 20,170 L 55,195 L 55,124 A 20 20 0 0 0 55,80 L 55,45 Z"
+                            fill="url(#goldStem)" />
+
+                        <!-- Right Stem Top Part (Slanted Top, Slanted Cut at Bottom) -->
+                        <path d="M 150,45 L 115,10 L 115,75 L 150,110 Z" fill="url(#goldStem)" />
+
+                        <!-- Right Stem Bottom Part (Slanted Cut at Top, Slanted Bottom) -->
+                        <path d="M 150,118 L 115,142 L 115,170 L 150,195 Z" fill="url(#goldStem)" />
+
+                        <!-- Lower Feather Blade Swoosh extending to Right -->
+                        <path d="M 185,145 Q 135,95 105,95 Q 135,105 165,145 Z" fill="url(#goldHead)" opacity="0.95" />
+
+                        <!-- Main Eagle Head (Facing LEFT) & Upper Crest Swoosh with Hooked Beak on Left -->
+                        <path
+                            d="M 185,145 Q 135,85 95,78 C 78,75 64,82 58,94 C 54,102 55,114 60,125 C 63,130 66,124 70,118 C 76,110 86,112 95,114 Q 120,118 155,128 Z"
+                            fill="url(#goldHead)" />
+
+                        <!-- Eagle Eye Slit Cutout Facing Left -->
+                        <polygon points="88,94 75,97 84,105" fill="#090c10" />
+                    </g>
+                </svg>
+            </div>
+            <span class="brand-name">H<span class="brand-a">Λ</span>TOKY</span>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="#" class="nav-link active">Home</a>
+            <a href="#" class="nav-link" id="termsLink">Terms</a>
+            <a href="https://www.facebook.com/hatokymail/" target="_blank" rel="noopener noreferrer" class="nav-link" id="contactLink">Contact</a>
+            <button class="theme-toggle-btn" id="themeToggleBtn" title="Chuyển chế độ Tối / Sáng">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Floating Bottom-Left Gold Donate Button -->
+    <button class="btn-donate-gold" id="fixedDonateBtn">
+        <span>Donate</span>
+    </button>
+
+    <!-- Donate Modal Popup -->
+    <div class="modal-overlay hidden" id="donateModal">
+        <div class="modal-card">
+            <button class="modal-close-btn" id="closeDonateModal">&times;</button>
+            <div class="modal-header">
+                <h2>Receiving address</h2>
+            </div>
+            <p class="modal-desc">Donate to Kirato Mail</p>
+
+            <!-- Black Box for Bitcoin Address -->
+            <div class="crypto-black-box">
+                <div class="crypto-label">
+                    <i class="fa-brands fa-bitcoin crypto-icon"></i>
+                    <span>Bitcoin:</span>
+                </div>
+                <div class="crypto-address-text" id="btcAddressText">bc1quykucqc7cpxhrf2945yuxt84zp0lg70hazugng</div>
+                <button class="btn-copy-btc" id="copyBtcBtn">
+                    <i class="fa-regular fa-copy"></i> Sao chép ví BTC
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms of Use Modal Popup -->
+    <div class="modal-overlay hidden" id="termsModal">
+        <div class="modal-card terms-modal-card">
+            <button class="modal-close-btn" id="closeTermsModal">&times;</button>
+            <div class="terms-content">
+                <h1 class="terms-title">TEMPORARY EMAIL USAGE POLICY</h1>
+
+                <section class="terms-section">
+                    <h2>1. Age Limits</h2>
+                    <ul>
+                        <li>Users must be <strong>13 years of age or older</strong>, or meet the minimum age
+                            requirements stipulated by law in their country of residence.</li>
+                        <li>Users under the age of majority require <strong>parental or legal guardian consent or
+                                supervision</strong> when required by law.</li>
+                        <li>The service is not designed to collect personal information from children under the minimum
+                            age required by current law.</li>
+                        <li>If an account is found to be used in violation of age restrictions, <strong>the provider has
+                                the right to restrict or terminate access to the service</strong>.</li>
+                    </ul>
+                </section>
+
+                <section class="terms-section">
+                    <h2>2. Purpose of Use</h2>
+                    <p>Users may <strong>only use temporary email for legitimate purposes</strong>, including service
+                        registration, system testing, privacy protection, and spam reduction.</p>
+                </section>
+
+                <section class="terms-section">
+                    <h2>3. Prohibited Behaviors</h2>
+                    <p>Users are <strong>strictly prohibited</strong> from using the service to:</p>
+                    <ul>
+                        <li><strong>Fraud or misappropriate assets</strong>.</li>
+                        <li><strong>Impersonate individuals or organizations</strong>.</li>
+                        <li><strong>Distribute malware, viruses, or harmful content</strong>.</li>
+                        <li><strong>Send spam or engage in harassment</strong>.</li>
+                        <li><strong>Unauthorized access to systems or accounts</strong>.</li>
+                        <li><strong>Fraudulently create accounts in bulk for personal gain or to circumvent legal
+                                controls</strong>.</li>
+                        <li><strong>Engage in any illegal activities</strong>.</li>
+                    </ul>
+                </section>
+
+                <section class="terms-section">
+                    <h2>4. Illegal Content</h2>
+                    <p>It is <strong>strictly prohibited</strong> to use the service to store, transmit, or support
+                        illegal content, including but not limited to <strong>child abuse, terrorism, fraud, malware, or
+                            other content prohibited by law</strong>.</p>
+                </section>
+
+                <section class="terms-section">
+                    <h2>5. User Responsibility</h2>
+                    <p>Users are <strong>solely responsible for their actions</strong> when using the service. The use
+                        of temporary email addresses <strong>does not diminish or eliminate the user's legal
+                            liability</strong>.</p>
+                </section>
+
+                <section class="terms-section">
+                    <h2>6. Provider's Rights</h2>
+                    <p>The provider has the right to:</p>
+                    <ul>
+                        <li><strong>Refuse or restrict access</strong> to the service.</li>
+                        <li><strong>Delete or disable</strong> temporary email addresses.</li>
+                        <li><strong>Prevent activities</strong> that show signs of abuse.</li>
+                        <li><strong>Cooperate with competent authorities</strong> when legally required by law.</li>
+                    </ul>
+                </section>
+
+                <section class="terms-section">
+                    <h2>7. Policy Changes</h2>
+                    <p>The provider may update this policy as needed. Changes will be published on the platform and will
+                        be <strong>effective from the time of notification</strong>, unless otherwise stated.</p>
+                </section>
+
+                <section class="terms-section">
+                    <h2>8. Acceptance of the Policy</h2>
+                    <p><strong>By accessing or using the service, the user acknowledges that they have read, understood,
+                            and agree to abide by this policy.</strong></p>
+                </section>
+
+                <button class="btn-agree-terms" id="agreeTermsBtn">I Agree & Accept</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gmail-style Compose New Message Window -->
+    <div class="compose-window hidden" id="composeWindow">
+        <div class="compose-header">
+            <span class="compose-title">New Message</span>
+            <div class="compose-window-controls">
+                <button class="win-btn" id="minComposeBtn" title="Thu nhỏ"><i class="fa-solid fa-minus"></i></button>
+                <button class="win-btn" title="Phóng to"><i class="fa-solid fa-expand"></i></button>
+                <button class="win-btn" id="closeComposeBtn" title="Đóng"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+
+        <div class="compose-body">
+            <div class="compose-field">
+                <label>To</label>
+                <input type="text" id="composeToInput" placeholder="Recipient email address..." autocomplete="off">
+                <div class="cc-bcc-toggle">
+                    <span>Cc</span>
+                    <span>Bcc</span>
+                </div>
+            </div>
+
+            <div class="compose-field">
+                <input type="text" id="composeSubjectInput" placeholder="Subject" autocomplete="off">
+            </div>
+
+            <div class="compose-text-area" contenteditable="true" id="composeMessageArea"
+                placeholder="Write your message here..."></div>
+        </div>
+
+        <!-- Compose Bottom Toolbar -->
+        <div class="compose-footer">
+            <div class="footer-left">
+                <div class="send-split-btn">
+                    <button class="btn-send-main" id="sendEmailBtn">Send</button>
+                    <button class="btn-send-dropdown"><i class="fa-solid fa-caret-down"></i></button>
+                </div>
+
+                <div class="toolbar-icons">
+                    <button class="tool-icon" title="Formatting options">Aa</button>
+                    <button class="tool-icon" title="Attach files"><i class="fa-solid fa-paperclip"></i></button>
+                    <button class="tool-icon" title="Insert link"><i class="fa-solid fa-link"></i></button>
+                    <button class="tool-icon" title="Insert emoji"><i class="fa-regular fa-face-smile"></i></button>
+                    <button class="tool-icon" title="Insert files using Drive"><i
+                            class="fa-brands fa-google-drive"></i></button>
+                    <button class="tool-icon" title="Insert photo"><i class="fa-regular fa-image"></i></button>
+                    <button class="tool-icon" title="Toggle confidential mode"><i class="fa-solid fa-lock"></i></button>
+                    <button class="tool-icon" title="Insert signature"><i class="fa-solid fa-pen-nib"></i></button>
+                    <button class="tool-icon" title="More options"><i
+                            class="fa-solid fa-ellipsis-vertical"></i></button>
+                </div>
+            </div>
+
+            <button class="btn-discard" id="discardComposeBtn" title="Discard draft"><i
+                    class="fa-regular fa-trash-can"></i></button>
+        </div>
+    </div>
+
+    <!-- Hero Section (Centered Email Creator at Top) -->
+    <section class="hero-section">
+        <h1 class="hero-title">FREE Temporary Email</h1>
+        <p class="hero-subtitle">Free, Fast, Private, and Secure temporary email address.</p>
+
+        <!-- Centered Email Generator Box -->
+        <div class="email-generator-box">
+            <div class="input-wrapper">
+                <input type="text" id="prefixInput" placeholder="Enter your username (optional)" autocomplete="off">
+            </div>
+            <div class="select-wrapper">
+                <select id="domainSelect">
+                    <option value="@hatoky.xyz">hatoky.xyz</option>
+                </select>
+                <i class="fa-solid fa-up-down select-arrow"></i>
+            </div>
+            <button class="btn-get-email" id="generateBtn">Get Email</button>
+        </div>
+
+        <!-- Active Address & Quick Actions Bar -->
+        <div class="active-address-bar">
+            <div class="address-info-group">
+                <span class="address-label">YOUR ADDRESS:</span>
+                <span class="address-value" id="currentAddress">Enter username &amp; click Get Email</span>
+            </div>
+
+            <div class="address-buttons">
+                <!-- Action 1: Copy Email Address -->
+                <button class="btn-action" id="copyBtn" title="Sao chép địa chỉ">
+                    <i class="fa-regular fa-copy"></i> Copy
+                </button>
+
+                <!-- Action 2: Refresh Inbox -->
+                <button class="btn-action" id="refreshBtn" title="Làm mới hộp thư">
+                    <i class="fa-solid fa-rotate"></i> Refresh
+                </button>
+
+                <div class="action-divider"></div>
+
+                <!-- Action 3: Save to Compose -->
+                <button class="btn-action btn-compose-highlight" id="openComposeBtn"
+                    title="Soạn & gửi thư đi từ địa chỉ này">
+                    <i class="fa-solid fa-pen-to-square"></i> Save to Compose
+                </button>
+
+                <!-- Action 4: Send Test (Simulate) -->
+                <button class="btn-action btn-simulate-highlight" id="simulateMailBtn"
+                    title="Giả lập 1 email OTP thử nghiệm gửi tới đây">
+                    <i class="fa-solid fa-paper-plane"></i> Send Test (Simulate)
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Dashboard Grid Layout (Sidebar Top Aligned Horizontally with Inbox Top) -->
+    <div class="dashboard-container">
+        <!-- Left Sidebar (Image 2: Steps & Features) -->
+        <aside class="sidebar-panel">
+            <!-- Widget 1: Steps to Create Address -->
+            <div class="widget-card steps-widget">
+                <div class="widget-header">
+                    <h3 class="widget-title">Create address</h3>
+                    <span class="widget-sub">One click — temp email</span>
+                </div>
+
+                <div class="steps-flow">
+                    <!-- Step 01 -->
+                    <div class="step-card">
+                        <div class="step-num">01</div>
+                        <div class="step-icon">
+                            <i class="fa-solid fa-globe"></i>
+                        </div>
+                        <div class="step-info">
+                            <h4>Pick domain</h4>
+                            <p>Choose from our domains.</p>
+                        </div>
+                    </div>
+
+                    <div class="step-arrow">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+
+                    <!-- Step 02 -->
+                    <div class="step-card">
+                        <div class="step-num">02</div>
+                        <div class="step-icon">
+                            <i class="fa-solid fa-pen"></i>
+                        </div>
+                        <div class="step-info">
+                            <h4>Create address</h4>
+                            <p>Enter name or leave empty for random.</p>
+                        </div>
+                    </div>
+
+                    <div class="step-arrow">
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </div>
+
+                    <!-- Step 03 -->
+                    <div class="step-card">
+                        <div class="step-num">03</div>
+                        <div class="step-icon">
+                            <i class="fa-regular fa-envelope"></i>
+                        </div>
+                        <div class="step-info">
+                            <h4>Emails arrive via SSE</h4>
+                            <p>Real-time delivery, no refresh needed.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget 2: Security & Privacy Highlights -->
+            <div class="widget-card features-widget">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="feature-info">
+                        <h4>Private. Secure. Temporary.</h4>
+                        <p>Your privacy is our priority.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-eye-slash"></i>
+                    </div>
+                    <div class="feature-info">
+                        <h4>No tracking</h4>
+                        <p>Your data stays private.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <div class="feature-info">
+                        <h4>Auto-delete</h4>
+                        <p>Emails vanish automatically.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div class="feature-info">
+                        <h4>100% Private</h4>
+                        <p>No personal info required.</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Panels: Inbox + Reader Grid -->
+        <main class="content-container">
+            <!-- Left Panel: Inbox List -->
+            <section class="inbox-card">
+                <div class="inbox-card-header">
+                    <div class="inbox-title">
+                        <i class="fa-solid fa-inbox"></i>
+                        <h2>Inbox</h2>
+                        <span class="unread-badge" id="unreadBadge">0</span>
+                    </div>
+                    <div class="inbox-header-tools">
+                        <button class="btn-icon-refresh" id="refreshInboxBtn" title="Tải lại hộp thư">
+                            <i class="fa-solid fa-rotate"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Email Items List -->
+                <div class="email-list" id="emailList">
+                    <!-- Dynamic email items rendered here -->
+                </div>
+
+                <!-- Empty Inbox View -->
+                <div class="empty-inbox-state" id="emptyInboxState">
+                    <div class="empty-icon-circle">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <h4>No emails yet</h4>
+                    <p>Emails will appear here automatically</p>
+                </div>
+            </section>
+
+            <!-- Right Panel: Email Reader -->
+            <section class="reader-card" id="readerPanel">
+                <!-- Mail Details View (Shown when an email is selected) -->
+                <div class="reader-content hidden" id="readerContent">
+                    <div class="reader-header">
+                        <h2 id="viewSubject">Subject line here</h2>
+                        <div class="reader-actions">
+                            <button class="icon-btn" id="starMailBtn" title="Gắn sao"><i
+                                    class="fa-regular fa-star"></i></button>
+                            <button class="icon-btn" id="deleteMailBtn" title="Xóa mail"><i
+                                    class="fa-regular fa-trash-can"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="sender-info-card">
+                        <div class="avatar" id="viewAvatar">K</div>
+                        <div class="meta-details">
+                            <div class="sender-name-row">
+                                <strong id="viewSenderName">Sender Name</strong>
+                                <span class="sender-email" id="viewSenderEmail">&lt;sender@example.com&gt;</span>
+                            </div>
+                            <div class="recipient-row">
+                                To: <span id="viewRecipient">address@kirato.com</span>
+                            </div>
+                        </div>
+                        <div class="mail-date" id="viewDate">10:45 AM</div>
+                    </div>
+
+                    <div class="mail-body-container">
+                        <iframe id="mailFrame" sandbox="allow-same-origin"></iframe>
+                    </div>
+                </div>
+
+                <!-- Empty Reader State (Circular Sync Icon) -->
+                <div class="empty-reader-state" id="emptyReaderState">
+                    <div class="sync-graphic">
+                        <div class="sync-arrows">
+                            <i class="fa-solid fa-rotate"></i>
+                        </div>
+                        <div class="envelope-center">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "kirato-temp-mail",
+  "version": "1.0.0",
+  "description": "Real-time Temporary Email Application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
