@@ -231,8 +231,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add Incoming Email to List
     function addIncomingEmail(mail) {
         // Strict isolation: Only process email if target address matches active user address
-        if (mail.to && state.currentEmail && mail.to.toLowerCase() !== state.currentEmail.toLowerCase()) {
-            return;
+        if (mail.to && state.currentEmail) {
+            const cleanTo = mail.to.replace(/[<>]/g, '').trim().toLowerCase();
+            const cleanCurrent = state.currentEmail.replace(/[<>]/g, '').trim().toLowerCase();
+            if (cleanTo !== cleanCurrent) {
+                return;
+            }
         }
 
         const otp = extractOtpCode(mail.text, mail.html, mail.subject);
