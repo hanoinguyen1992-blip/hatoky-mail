@@ -139,10 +139,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2500);
     }
 
-    // Helper: Smart OTP Code Extractor
+    // Helper: Universal OTP Code Extractor for All Services (TikTok, Tinder, FB, Google, Telegram, etc.)
     function extractOtpCode(text, html, subject) {
         const combined = `${subject || ''} ${text || ''} ${html ? html.replace(/<[^>]+>/g, ' ') : ''}`;
-        const codeMatch = combined.match(/(?:code|mã|otp|pin|passcode|verification)[^\d]*(\d{4,8})/i) || combined.match(/\b(\d{4,8})\b/);
+        
+        // Priority 1: Keyword + Code (4-8 digits/chars)
+        const keywordMatch = combined.match(/(?:code|mã|otp|pin|passcode|verification|verify|secret|security|confirm|confirmation|auth|authentication)[^\d]*([A-Za-z0-9]{4,8})/i);
+        if (keywordMatch && keywordMatch[1] && !/^(http|https|html|css|body|head|div|span|table|width|style)$/i.test(keywordMatch[1])) {
+            return keywordMatch[1];
+        }
+
+        // Priority 2: Hyphenated code (e.g. G-123456 or 123-456)
+        const hyphenMatch = combined.match(/\b([A-Z0-9]{1,3}-\d{4,6})\b/i);
+        if (hyphenMatch) return hyphenMatch[1];
+
+        // Priority 3: Standalone 4 to 8 digit numbers
+        const codeMatch = combined.match(/\b(\d{4,8})\b/);
         return codeMatch ? codeMatch[1] : null;
     }
 
@@ -198,8 +210,26 @@ document.addEventListener('DOMContentLoaded', () => {
         renderReader();
         renderEmailList();
 
-        // Connect Real-time SSE
+        // Fetch past emails & connect Real-time SSE
+        fetchExistingEmails();
         connectSSE();
+    }
+
+    // Fetch past emails for active address
+    function fetchExistingEmails() {
+        if (!state.currentEmail) return;
+        fetch(`/api/messages?address=${encodeURIComponent(state.currentEmail)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && Array.isArray(data.emails)) {
+                    data.emails.forEach(mail => {
+                        if (!state.emails.some(e => e.id === mail.id)) {
+                            addIncomingEmail(mail);
+                        }
+                    });
+                }
+            })
+            .catch(err => console.warn('Could not fetch stored messages:', err));
     }
 
     // Connect Server-Sent Events (SSE) for Real-time Updates
@@ -412,6 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const refreshHandler = () => {
         showToast('🔄 Đã làm mới hộp thư');
+        fetchExistingEmails();
         renderEmailList();
     };
 
