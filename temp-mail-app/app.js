@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Kirato Mail - Frontend Logic & Real-time SSE Manager
+   Hatoky Mail - Frontend Logic & Real-time SSE Manager
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Theme Switcher Logic
     function initTheme() {
-        const savedTheme = localStorage.getItem('kirato_theme') || 'light';
+        const savedTheme = localStorage.getItem('hatoky_theme') || localStorage.getItem('kirato_theme') || 'light';
         if (savedTheme === 'dark') {
             document.body.classList.add('dark-theme');
             if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', () => {
             const isDark = document.body.classList.toggle('dark-theme');
-            localStorage.setItem('kirato_theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('hatoky_theme', isDark ? 'dark' : 'light');
             themeToggleBtn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
             showToast(isDark ? '🌙 Đã bật chế độ Tối (Dark Mode)' : '☀️ Đã bật chế độ Sáng (Light Mode)');
         });
@@ -156,17 +156,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Helper: Strict Pure Numeric OTP Extractor (Prevents "41506Kh" or "ults" garbage strings)
-    function extractOtpCode(text, html, subject) {
+    function extractOtpCode(text, subject) {
         const cleanSub = decodeRFC2047(subject || '');
         const combined = `${cleanSub} ${text || ''}`;
-        
+
         // Priority 1: Keyword + Pure Digits (4 to 8 digits)
         const keywordDigitMatch = combined.match(/(?:code|mã|otp|pin|passcode|verification|verify|secret|security|confirm|confirmation|auth)[^\d]*\b(\d{4,8})\b/i);
         if (keywordDigitMatch && keywordDigitMatch[1]) {
             return keywordDigitMatch[1];
         }
 
-        // Priority 2: Pure 4-8 digits in Subject line (Facebook/Google/TikTok/Tinder subjects put OTP first!)
+        // Fallbacks require an OTP-related keyword SOMEWHERE in the mail,
+        // otherwise years/order numbers/prices trigger false OTP banners
+        const hasOtpKeyword = /(code|mã|otp|pin|passcode|verification|verify|xác minh|xác nhận|confirm|auth)/i.test(combined);
+        if (!hasOtpKeyword) return null;
+
+        // Priority 2: Pure 4-8 digits in Subject line (Facebook/Google/TikTok subjects put OTP first!)
         const subjectDigitMatch = cleanSub.match(/\b(\d{4,8})\b/);
         if (subjectDigitMatch) {
             return subjectDigitMatch[1];
@@ -219,10 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cleanPrefix = cleanPrefix || generateRandomString(9);
         state.currentEmail = `${cleanPrefix}${domain}`.toLowerCase();
-        
+        localStorage.setItem('hatoky_address', state.currentEmail);
+
         currentAddressEl.textContent = state.currentEmail;
         showToast(`Đã tạo địa chỉ mới: ${state.currentEmail}`);
-        
+
         // Reset state
         state.emails = [];
         state.selectedEmailId = null;
@@ -241,7 +247,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(res => res.json())
             .then(data => {
                 if (data && Array.isArray(data.emails)) {
-                    data.emails.forEach(mail => {
+                    // Server returns newest-first; addIncomingEmail unshifts,
+                    // so iterate oldest-first to keep newest at the top
+                    data.emails.slice().reverse().forEach(mail => {
                         if (!state.emails.some(e => e.id === mail.id)) {
                             addIncomingEmail(mail);
                         }
@@ -258,23 +266,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const sseUrl = `/api/stream?address=${encodeURIComponent(state.currentEmail)}`;
-        
-        try {
-            state.eventSource = new EventSource(sseUrl);
+        state.eventSource = new EventSource(sseUrl);
 
-            state.eventSource.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if (data.type === 'NEW_EMAIL') {
-                    addIncomingEmail(data.email);
-                }
-            };
+        state.eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'NEW_EMAIL') {
+                addIncomingEmail(data.email);
+            }
+        };
 
-            state.eventSource.onerror = () => {
-                console.log('SSE connection waiting or lost, will reconnect automatically.');
-            };
-        } catch (e) {
-            console.warn('Backend server not detected. Running in client mode.');
-        }
+        // Connection failures surface here; the browser auto-reconnects
+        state.eventSource.onerror = () => {
+            console.log('SSE connection waiting or lost, will reconnect automatically.');
+        };
     }
 
     // Add Incoming Email to List
@@ -290,7 +294,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const cleanSub = decodeRFC2047(mail.subject || '');
         const cleanName = decodeRFC2047(mail.fromName || mail.from?.split('<')[0] || 'Unknown');
-        const otp = extractOtpCode(mail.text, mail.html, cleanSub);
+        // Prefer the OTP the worker already extracted; fall back to local extraction
+        const otp = (typeof mail.otpCode === 'string' && /^\d{4,8}$/.test(mail.otpCode))
+            ? mail.otpCode
+            : extractOtpCode(mail.text, cleanSub);
         const newMail = {
             id: mail.id || 'mail_' + Date.now(),
             fromName: cleanName,
@@ -298,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
             subject: cleanSub,
             snippet: mail.snippet || mail.text?.substring(0, 100) || 'No preview available',
             html: mail.html || `<p>${mail.text || 'Empty content'}</p>`,
-            date: mail.date || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            date: formatMailDate(mail),
             unread: true,
             starred: false,
             otpCode: otp
@@ -317,6 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderEmailList() {
         const unreadCount = state.emails.filter(e => e.unread).length;
         unreadBadgeEl.textContent = unreadCount;
+        unreadBadgeEl.style.display = unreadCount > 0 ? '' : 'none';
 
         if (state.emails.length === 0) {
             emailListEl.innerHTML = '';
@@ -326,24 +334,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
         emptyInboxState.classList.add('hidden');
         emailListEl.innerHTML = state.emails.map(mail => `
-            <div class="email-item ${mail.unread ? 'unread' : ''} ${state.selectedEmailId === mail.id ? 'selected' : ''}" data-id="${mail.id}">
+            <div class="email-item ${mail.unread ? 'unread' : ''} ${state.selectedEmailId === mail.id ? 'selected' : ''}" data-id="${escapeHtml(mail.id)}" role="button" tabindex="0" aria-label="${escapeHtml(mail.subject)}">
                 <div class="item-top">
                     <span class="item-sender">${escapeHtml(mail.fromName)}</span>
-                    <span class="item-time">${mail.date}</span>
+                    <span class="item-time">${escapeHtml(mail.date)}</span>
                 </div>
                 <div class="item-subject">
-                    ${mail.otpCode ? `<span class="otp-badge-mini">🔑 ${mail.otpCode}</span> ` : ''}
+                    ${mail.otpCode ? `<span class="otp-badge-mini" data-otp="${mail.otpCode}" title="Bấm để sao chép mã OTP">🔑 ${mail.otpCode}</span> ` : ''}
                     ${escapeHtml(mail.subject)}
                 </div>
                 <div class="item-snippet">${escapeHtml(mail.snippet)}</div>
             </div>
         `).join('');
 
-        // Attach Click Events to items
+        // Attach Click + Keyboard Events to items
         document.querySelectorAll('.email-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const id = item.getAttribute('data-id');
-                selectEmail(id);
+            item.addEventListener('click', (e) => {
+                // Clicking the OTP badge copies the code without opening the mail
+                const otpBadge = e.target.closest('.otp-badge-mini');
+                if (otpBadge && otpBadge.dataset.otp) {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(otpBadge.dataset.otp);
+                    showToast(`📋 Đã sao chép mã OTP: ${otpBadge.dataset.otp}`);
+                    return;
+                }
+                selectEmail(item.getAttribute('data-id'));
+            });
+            item.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectEmail(item.getAttribute('data-id'));
+                }
             });
         });
     }
@@ -433,10 +454,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper: HTML Escape
     function escapeHtml(str) {
-        return str.replace(/&/g, "&amp;")
-                  .replace(/</g, "&lt;")
-                  .replace(/>/g, "&gt;")
-                  .replace(/"/g, "&quot;");
+        return String(str ?? '')
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    // Helper: Format mail time from server timestamp (fallback: given date string)
+    function formatMailDate(mail) {
+        if (mail.timestamp) {
+            return new Date(mail.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        return mail.date || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     // Event Listeners
@@ -472,12 +503,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     deleteMailBtn.addEventListener('click', () => {
         if (!state.selectedEmailId) return;
-        state.emails = state.emails.filter(e => e.id !== state.selectedEmailId);
+        const deletedId = state.selectedEmailId;
+        state.emails = state.emails.filter(e => e.id !== deletedId);
         state.selectedEmailId = null;
         renderEmailList();
         renderReader();
         showToast('🗑️ Đã xóa email');
+        // Also delete on server so it doesn't reappear on refresh
+        fetch(`/api/messages?address=${encodeURIComponent(state.currentEmail)}&id=${encodeURIComponent(deletedId)}`, {
+            method: 'DELETE'
+        }).catch(() => {});
     });
+
+    // Clear the whole inbox (client + server)
+    const clearInboxBtn = document.getElementById('clearInboxBtn');
+    if (clearInboxBtn) {
+        clearInboxBtn.addEventListener('click', () => {
+            if (!state.currentEmail || state.emails.length === 0) {
+                showToast('📭 Hộp thư đang trống');
+                return;
+            }
+            state.emails = [];
+            state.selectedEmailId = null;
+            renderEmailList();
+            renderReader();
+            showToast('🧹 Đã xóa toàn bộ hộp thư');
+            fetch(`/api/messages?address=${encodeURIComponent(state.currentEmail)}`, {
+                method: 'DELETE'
+            }).catch(() => {});
+        });
+    }
 
     starMailBtn.addEventListener('click', () => {
         const mail = state.emails.find(e => e.id === state.selectedEmailId);
@@ -520,11 +575,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="background: #f1f5f9; padding: 15px; border-radius: 6px; font-size: 24px; font-weight: bold; text-align: center; color: #4338ca;">
                             Mã xác minh: ${randomSender.code}
                         </div>
-                        <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Trang web email tạm thời Kirato Mail.</p>
+                        <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Trang web email tạm thời Hatoky Mail.</p>
                     </div>
                 `
             })
+        }).then(res => {
+            // fetch only rejects on network failure; treat HTTP errors the same
+            if (res && !res.ok) throw new Error('HTTP ' + res.status);
         }).catch(() => {
+            // Offline/static fallback: add the simulated mail locally
             addIncomingEmail({
                 fromName: randomSender.name,
                 fromEmail: randomSender.email,
@@ -592,16 +651,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            showToast(`✉️ Đã gửi thư thành công tới ${recipient}!`);
-            
-            // Clear form and close window
-            if (composeToInput) composeToInput.value = '';
-            if (composeSubjectInput) composeSubjectInput.value = '';
-            if (composeMessageArea) composeMessageArea.innerHTML = '';
-            composeWindow.classList.add('hidden');
+            // Honest UX: temp mail is receive-only, there is no outgoing SMTP
+            showToast('⚠️ Email tạm thời chỉ NHẬN thư — tính năng gửi đi chưa được hỗ trợ.');
         });
     }
 
-    // Initialize Theme (Do not auto-generate address on load)
+    // Escape key closes any open modal / the compose window
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        if (donateModal) donateModal.classList.add('hidden');
+        if (termsModal) termsModal.classList.add('hidden');
+        if (composeWindow) composeWindow.classList.add('hidden');
+    });
+
+    // Restore previously used address after reload (server keeps mail within TTL)
+    function restoreSavedAddress() {
+        const saved = (localStorage.getItem('hatoky_address') || '').toLowerCase();
+        if (!saved.includes('@')) return;
+        state.currentEmail = saved;
+        currentAddressEl.textContent = saved;
+        fetchExistingEmails();
+        connectSSE();
+        showToast(`📮 Đã khôi phục địa chỉ: ${saved}`);
+    }
+
+    // Initialize (do not auto-generate a new address on load)
     initTheme();
+    restoreSavedAddress();
 });

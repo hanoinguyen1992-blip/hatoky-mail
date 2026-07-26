@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Hatoky - Email tạm thời miễn phí, nhận thư real-time, tự động xóa sau 60 phút. Free temporary email with real-time inbox.">
+    <meta property="og:title" content="Hatoky - FREE Temporary Email">
+    <meta property="og:description" content="Email tạm thời miễn phí, nhận thư real-time, tự động xóa sau 60 phút.">
     <title>Hatoky - FREE Temporary Email</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📬</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
@@ -80,13 +84,13 @@
     </button>
 
     <!-- Donate Modal Popup -->
-    <div class="modal-overlay hidden" id="donateModal">
+    <div class="modal-overlay hidden" id="donateModal" role="dialog" aria-modal="true" aria-label="Donate">
         <div class="modal-card">
-            <button class="modal-close-btn" id="closeDonateModal">&times;</button>
+            <button class="modal-close-btn" id="closeDonateModal" aria-label="Đóng">&times;</button>
             <div class="modal-header">
                 <h2>Receiving address</h2>
             </div>
-            <p class="modal-desc">Donate to Kirato Mail</p>
+            <p class="modal-desc">Donate to Hatoky Mail</p>
 
             <!-- Black Box for Bitcoin Address -->
             <div class="crypto-black-box">
@@ -103,9 +107,9 @@
     </div>
 
     <!-- Terms of Use Modal Popup -->
-    <div class="modal-overlay hidden" id="termsModal">
+    <div class="modal-overlay hidden" id="termsModal" role="dialog" aria-modal="true" aria-label="Terms of Use">
         <div class="modal-card terms-modal-card">
-            <button class="modal-close-btn" id="closeTermsModal">&times;</button>
+            <button class="modal-close-btn" id="closeTermsModal" aria-label="Đóng">&times;</button>
             <div class="terms-content">
                 <h1 class="terms-title">TEMPORARY EMAIL USAGE POLICY</h1>
 
@@ -191,28 +195,23 @@
         <div class="compose-header">
             <span class="compose-title">New Message</span>
             <div class="compose-window-controls">
-                <button class="win-btn" id="minComposeBtn" title="Thu nhỏ"><i class="fa-solid fa-minus"></i></button>
-                <button class="win-btn" title="Phóng to"><i class="fa-solid fa-expand"></i></button>
-                <button class="win-btn" id="closeComposeBtn" title="Đóng"><i class="fa-solid fa-xmark"></i></button>
+                <button class="win-btn" id="minComposeBtn" title="Thu nhỏ" aria-label="Thu nhỏ"><i class="fa-solid fa-minus"></i></button>
+                <button class="win-btn" id="closeComposeBtn" title="Đóng" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </div>
 
         <div class="compose-body">
             <div class="compose-field">
-                <label>To</label>
+                <label for="composeToInput">To</label>
                 <input type="text" id="composeToInput" placeholder="Recipient email address..." autocomplete="off">
-                <div class="cc-bcc-toggle">
-                    <span>Cc</span>
-                    <span>Bcc</span>
-                </div>
             </div>
 
             <div class="compose-field">
-                <input type="text" id="composeSubjectInput" placeholder="Subject" autocomplete="off">
+                <input type="text" id="composeSubjectInput" placeholder="Subject" aria-label="Subject" autocomplete="off">
             </div>
 
-            <div class="compose-text-area" contenteditable="true" id="composeMessageArea"
-                placeholder="Write your message here..."></div>
+            <div class="compose-text-area" contenteditable="true" id="composeMessageArea" role="textbox"
+                aria-multiline="true" aria-label="Nội dung thư" placeholder="Write your message here..."></div>
         </div>
 
         <!-- Compose Bottom Toolbar -->
@@ -220,21 +219,14 @@
             <div class="footer-left">
                 <div class="send-split-btn">
                     <button class="btn-send-main" id="sendEmailBtn">Send</button>
-                    <button class="btn-send-dropdown"><i class="fa-solid fa-caret-down"></i></button>
                 </div>
 
                 <div class="toolbar-icons">
-                    <button class="tool-icon" title="Formatting options">Aa</button>
-                    <button class="tool-icon" title="Attach files"><i class="fa-solid fa-paperclip"></i></button>
-                    <button class="tool-icon" title="Insert link"><i class="fa-solid fa-link"></i></button>
-                    <button class="tool-icon" title="Insert emoji"><i class="fa-regular fa-face-smile"></i></button>
-                    <button class="tool-icon" title="Insert files using Drive"><i
-                            class="fa-brands fa-google-drive"></i></button>
-                    <button class="tool-icon" title="Insert photo"><i class="fa-regular fa-image"></i></button>
-                    <button class="tool-icon" title="Toggle confidential mode"><i class="fa-solid fa-lock"></i></button>
-                    <button class="tool-icon" title="Insert signature"><i class="fa-solid fa-pen-nib"></i></button>
-                    <button class="tool-icon" title="More options"><i
-                            class="fa-solid fa-ellipsis-vertical"></i></button>
+                    <button class="tool-icon" title="Chưa hỗ trợ" aria-disabled="true" disabled>Aa</button>
+                    <button class="tool-icon" title="Chưa hỗ trợ" aria-disabled="true" disabled><i class="fa-solid fa-paperclip"></i></button>
+                    <button class="tool-icon" title="Chưa hỗ trợ" aria-disabled="true" disabled><i class="fa-solid fa-link"></i></button>
+                    <button class="tool-icon" title="Chưa hỗ trợ" aria-disabled="true" disabled><i class="fa-regular fa-face-smile"></i></button>
+                    <button class="tool-icon" title="Chưa hỗ trợ" aria-disabled="true" disabled><i class="fa-regular fa-image"></i></button>
                 </div>
             </div>
 
@@ -251,10 +243,11 @@
         <!-- Centered Email Generator Box -->
         <div class="email-generator-box">
             <div class="input-wrapper">
-                <input type="text" id="prefixInput" placeholder="Enter your username (optional)" autocomplete="off">
+                <input type="text" id="prefixInput" placeholder="Enter your username (optional)" aria-label="Username"
+                    autocomplete="off">
             </div>
             <div class="select-wrapper">
-                <select id="domainSelect">
+                <select id="domainSelect" aria-label="Chọn tên miền">
                     <option value="@hatoky.xyz">hatoky.xyz</option>
                 </select>
                 <i class="fa-solid fa-up-down select-arrow"></i>
@@ -413,6 +406,9 @@
                         <button class="btn-icon-refresh" id="refreshInboxBtn" title="Tải lại hộp thư">
                             <i class="fa-solid fa-rotate"></i>
                         </button>
+                        <button class="btn-icon-refresh" id="clearInboxBtn" title="Xóa toàn bộ hộp thư">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -446,21 +442,21 @@
                     </div>
 
                     <div class="sender-info-card">
-                        <div class="avatar" id="viewAvatar">K</div>
+                        <div class="avatar" id="viewAvatar">H</div>
                         <div class="meta-details">
                             <div class="sender-name-row">
                                 <strong id="viewSenderName">Sender Name</strong>
                                 <span class="sender-email" id="viewSenderEmail">&lt;sender@example.com&gt;</span>
                             </div>
                             <div class="recipient-row">
-                                To: <span id="viewRecipient">address@kirato.com</span>
+                                To: <span id="viewRecipient">address@hatoky.xyz</span>
                             </div>
                         </div>
                         <div class="mail-date" id="viewDate">10:45 AM</div>
                     </div>
 
                     <div class="mail-body-container">
-                        <iframe id="mailFrame" sandbox="allow-same-origin"></iframe>
+                        <iframe id="mailFrame" title="Nội dung email" sandbox="allow-same-origin"></iframe>
                     </div>
                 </div>
 
@@ -479,7 +475,7 @@
         </main>
     </div>
 
-    <div class="toast-container" id="toastContainer"></div>
+    <div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
 
     <script src="app.js"></script>
 </body>
